@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AutoSEO"
+version = "1.0.0"
+id = "artifacts/auto-seo"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18769
+
+[services.development]
+run = "pnpm --filter @workspace/auto-seo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/auto-seo", "run", "build" ]
+publicDir = "artifacts/auto-seo/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18769"
+BASE_PATH = "/"

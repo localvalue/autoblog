@@ -1,0 +1,780 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: AutoSEO API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: projects
+    description: SEO project operations
+  - name: keywords
+    description: Keyword research operations
+  - name: articles
+    description: Article generation and management
+  - name: contentPlans
+    description: Content plan operations
+  - name: analytics
+    description: Dashboard analytics and stats
+  - name: wordpress
+    description: WordPress publishing and scheduling
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── Projects ──────────────────────────────────────────────────────────
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new SEO project from a website URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectBody"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/analyze:
+    post:
+      operationId: analyzeWebsite
+      tags: [projects]
+      summary: Analyze a website and extract business context using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebsiteAnalysis"
+
+  # ── Keywords ──────────────────────────────────────────────────────────
+  /projects/{id}/keywords:
+    get:
+      operationId: listKeywords
+      tags: [keywords]
+      summary: List keywords for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of keywords
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Keyword"
+    post:
+      operationId: generateKeywords
+      tags: [keywords]
+      summary: Generate keyword suggestions using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Generated keywords
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Keyword"
+
+  # ── Content Plans ─────────────────────────────────────────────────────
+  /projects/{id}/content-plan:
+    get:
+      operationId: getContentPlan
+      tags: [contentPlans]
+      summary: Get the 30-day content plan for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Content plan items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentPlanItem"
+    post:
+      operationId: generateContentPlan
+      tags: [contentPlans]
+      summary: Generate a 30-day content plan using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Generated content plan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentPlanItem"
+
+  # ── Articles ──────────────────────────────────────────────────────────
+  /projects/{projectId}/articles:
+    get:
+      operationId: listArticles
+      tags: [articles]
+      summary: List articles for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, generating, published, failed]
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+    post:
+      operationId: createArticle
+      tags: [articles]
+      summary: Create and generate an SEO article using AI
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateArticleBody"
+      responses:
+        "201":
+          description: Created article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+
+  /projects/{projectId}/articles/{articleId}:
+    get:
+      operationId: getArticle
+      tags: [articles]
+      summary: Get an article by ID
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateArticle
+      tags: [articles]
+      summary: Update an article (edit content, status)
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateArticleBody"
+      responses:
+        "200":
+          description: Updated article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    delete:
+      operationId: deleteArticle
+      tags: [articles]
+      summary: Delete an article
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{projectId}/articles/{articleId}/regenerate:
+    post:
+      operationId: regenerateArticle
+      tags: [articles]
+      summary: Regenerate article content using AI
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Regenerated article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+
+  # ── WordPress Integration ─────────────────────────────────────────────
+  /projects/{id}/wordpress/connect:
+    post:
+      operationId: connectWordPress
+      tags: [wordpress]
+      summary: Save and test WordPress credentials for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectWordPressBody"
+      responses:
+        "200":
+          description: Connection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WordPressConnectionStatus"
+
+  /projects/{projectId}/articles/{articleId}/wordpress/publish:
+    post:
+      operationId: publishToWordPress
+      tags: [wordpress]
+      summary: Generate featured image and publish article to WordPress
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishToWordPressBody"
+      responses:
+        "200":
+          description: Published article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+
+  /projects/{id}/wordpress/schedule-all:
+    post:
+      operationId: scheduleAllToWordPress
+      tags: [wordpress]
+      summary: Schedule all content plan articles to WordPress as future posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Schedule result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduleAllResult"
+
+  # ── Analytics / Dashboard ─────────────────────────────────────────────
+  /projects/{id}/analytics:
+    get:
+      operationId: getProjectAnalytics
+      tags: [analytics]
+      summary: Get article stats and progress for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectAnalytics"
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Get overall summary across all projects
+      responses:
+        "200":
+          description: Global analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        websiteUrl:
+          type: string
+        description:
+          type: string
+          nullable: true
+        niche:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        language:
+          type: string
+        status:
+          type: string
+          enum: [pending, analyzing, active, paused]
+        wordpressUrl:
+          type: string
+          nullable: true
+        wordpressUsername:
+          type: string
+          nullable: true
+        wordpressConnected:
+          type: boolean
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, websiteUrl, language, status, createdAt, updatedAt]
+
+    CreateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        websiteUrl:
+          type: string
+        language:
+          type: string
+          default: en
+      required: [name, websiteUrl]
+
+    UpdateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        niche:
+          type: string
+        targetAudience:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+          enum: [pending, analyzing, active, paused]
+
+    WebsiteAnalysis:
+      type: object
+      properties:
+        niche:
+          type: string
+        targetAudience:
+          type: string
+        description:
+          type: string
+        suggestedKeywords:
+          type: array
+          items:
+            type: string
+      required: [niche, targetAudience, description, suggestedKeywords]
+
+    Keyword:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        keyword:
+          type: string
+        searchIntent:
+          type: string
+          enum: [informational, navigational, transactional, commercial]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        priority:
+          type: integer
+        used:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, projectId, keyword, searchIntent, difficulty, priority, used, createdAt]
+
+    ContentPlanItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        dayNumber:
+          type: integer
+        title:
+          type: string
+        keyword:
+          type: string
+        searchIntent:
+          type: string
+        articleId:
+          type: integer
+          nullable: true
+        scheduledDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, projectId, dayNumber, title, keyword, searchIntent, createdAt]
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        title:
+          type: string
+        keyword:
+          type: string
+        content:
+          type: string
+          nullable: true
+        metaDescription:
+          type: string
+          nullable: true
+        wordCount:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [draft, generating, published, failed]
+        language:
+          type: string
+        searchIntent:
+          type: string
+          nullable: true
+        wordpressPostId:
+          type: integer
+          nullable: true
+        wordpressPublishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, projectId, title, keyword, status, language, createdAt, updatedAt]
+
+    CreateArticleBody:
+      type: object
+      properties:
+        title:
+          type: string
+        keyword:
+          type: string
+        searchIntent:
+          type: string
+          nullable: true
+        language:
+          type: string
+      required: [title, keyword]
+
+    UpdateArticleBody:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        metaDescription:
+          type: string
+        status:
+          type: string
+          enum: [draft, generating, published, failed]
+
+    ProjectAnalytics:
+      type: object
+      properties:
+        totalArticles:
+          type: integer
+        publishedArticles:
+          type: integer
+        draftArticles:
+          type: integer
+        totalWordCount:
+          type: integer
+        keywordsCount:
+          type: integer
+        contentPlanProgress:
+          type: integer
+          description: Percentage of content plan items with articles (0-100)
+        recentArticles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+      required: [totalArticles, publishedArticles, draftArticles, totalWordCount, keywordsCount, contentPlanProgress, recentArticles]
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        totalProjects:
+          type: integer
+        totalArticles:
+          type: integer
+        totalWordCount:
+          type: integer
+        publishedArticles:
+          type: integer
+        activeProjects:
+          type: integer
+      required: [totalProjects, totalArticles, totalWordCount, publishedArticles, activeProjects]
+
+    ConnectWordPressBody:
+      type: object
+      properties:
+        wordpressUrl:
+          type: string
+          description: WordPress site URL (e.g. https://myblog.com)
+        wordpressUsername:
+          type: string
+        wordpressAppPassword:
+          type: string
+          description: WordPress Application Password
+      required: [wordpressUrl, wordpressUsername, wordpressAppPassword]
+
+    WordPressConnectionStatus:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        siteTitle:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+      required: [connected]
+
+    PublishToWordPressBody:
+      type: object
+      properties:
+        scheduledDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: If set, post is scheduled as a future post on this date
+
+    ScheduleAllResult:
+      type: object
+      properties:
+        scheduled:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: integer
+      required: [scheduled, skipped, errors]
