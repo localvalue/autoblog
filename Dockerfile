@@ -5,15 +5,12 @@ RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-# Copy workspace config files first
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY lib/ ./lib/
 COPY artifacts/api-server/ ./artifacts/api-server/
 
-# Install dependencies - allow build scripts for native modules
-RUN pnpm install --frozen-lockfile --config.unsafe-perm=true
+RUN pnpm install --frozen-lockfile
 
-# Build the packages in order
 RUN pnpm --filter @workspace/db run build
 RUN pnpm --filter @workspace/api-zod run build
 RUN pnpm --filter @workspace/api-server run build
